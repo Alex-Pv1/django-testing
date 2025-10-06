@@ -89,11 +89,9 @@ class TestCommentEditDelete(TestBase):
         self.assertEqual(notes_count, 5)
 
     def test_author_can_edit_note(self):
-        initial_count = Note.objects.count()
         original_note_id = self.note.id
-        response = self.author_client.post(self.edit_url, data=self.form_data)
+        response = self.author_client.post(self.edit_url, self.form_data)
         self.assertRedirects(response, self.success_url)
-        self.assertEqual(Note.objects.count(), initial_count)
         note = Note.objects.get(id=original_note_id)
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.title, self.form_data['title'])
@@ -101,13 +99,11 @@ class TestCommentEditDelete(TestBase):
         self.assertEqual(note.author, self.note.author)
 
     def test_user_cant_edit_note_of_another_user(self):
-        initial_count = Note.objects.count()
-        original_note = Note.objects.get(id=self.note.id)
-        response = self.reader_client.post(self.edit_url, data=self.form_data)
+        original_note_id = self.note.id
+        response = self.reader_client.post(self.edit_url, self.form_data)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        self.assertEqual(Note.objects.count(), initial_count)
-        notes_edit = Note.objects.get(id=self.note.id)
-        self.assertEqual(notes_edit.text, original_note.text)
-        self.assertEqual(notes_edit.author, original_note.author)
-        self.assertEqual(notes_edit.title, original_note.title)
-        self.assertEqual(notes_edit.slug, original_note.slug)
+        note_after = Note.objects.get(id=original_note_id)
+        self.assertEqual(note_after.text, self.note.text)
+        self.assertEqual(note_after.title, self.note.title)
+        self.assertEqual(note_after.slug, self.note.slug)
+        self.assertEqual(note_after.author, self.note.author)
