@@ -32,9 +32,6 @@ class TestBase(TestCase):
         ]
         Note.objects.bulk_create(all_notes)
 
-        for note in all_notes:
-            note.save()
-
         cls.note = all_notes[0]
 
         cls.home_url = reverse('notes:home')
