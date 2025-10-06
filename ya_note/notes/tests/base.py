@@ -9,8 +9,6 @@ User = get_user_model()
 
 class TestBase(TestCase):
 
-    NOTES_URL = reverse('notes:list')
-
     @classmethod
     def setUpTestData(cls):
         cls.author = User.objects.create(username='Лев Толстой')

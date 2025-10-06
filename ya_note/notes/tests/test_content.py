@@ -5,19 +5,19 @@ from .base import TestBase
 class TestNotesPage(TestBase):
 
     def test_notes_list(self):
-        response = self.author_client.get(self.NOTES_URL)
+        response = self.author_client.get(self.list_url)
         object_list = response.context['object_list']
         first_note = object_list[0]
         self.assertIn(first_note, object_list)
 
     def test_reader_context_list(self):
-        response = self.reader_client.get(self.NOTES_URL)
+        response = self.reader_client.get(self.list_url)
         object_list = response.context['object_list']
         notes_count = len(object_list)
         self.assertEqual(notes_count, 0)
 
     def test_author_context_list(self):
-        response = self.author_client.get(self.NOTES_URL)
+        response = self.author_client.get(self.list_url)
         object_list = response.context['object_list']
         notes_count = len(object_list)
         self.assertEqual(notes_count, 5)
