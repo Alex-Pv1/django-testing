@@ -7,29 +7,30 @@ pytestmark = pytest.mark.django_db
 
 
 def test_news_count(client, home_url, create_news_test):
-    """Количество новостей на главной странице — не более 10."""
-    response = client.get(home_url)
-    object_list = response.context['object_list']
-    news_count = object_list.count()
-    assert news_count == settings.NEWS_COUNT_ON_HOME_PAGE
+    """Количество новостей на главной странице."""
+    assert (
+        len(client.get(home_url)
+            .context['object_list']) == settings.NEWS_COUNT_ON_HOME_PAGE
+    )
 
 
 def test_news_order(client, home_url, create_news_test):
-    """Новости отсортированы от самой свежей к самой старой.
-    Свежие новости в начале списка.
-    """
-    response = client.get(home_url)
-    object_list = response.context['object_list']
-    all_dates = [news.date for news in object_list]
+    """Новости отсортированы от самой свежей к самой старой."""
+    all_dates = [
+        news.date for news in client.get(home_url)
+        .context['object_list']
+    ]
     sorted_dates = sorted(all_dates, reverse=True)
     assert all_dates == sorted_dates
 
 
-def test_comments_order(client, news_detail_url):
+def test_comments_order(client, news_detail_url, create_new_comment):
     """Комментарии отсортированы в хронологическом порядке."""
-    response = client.get(news_detail_url)
-    news = response.context['news']
-    all_comments = news.comment_set.all()
+    all_comments = (
+        client.get(news_detail_url)
+        .context['news']
+        .comment_set.all()
+    )
     all_timestamps = [comment.created for comment in all_comments]
     sorted_timestamps = sorted(all_timestamps)
     assert all_timestamps == sorted_timestamps

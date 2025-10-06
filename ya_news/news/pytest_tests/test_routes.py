@@ -1,27 +1,27 @@
 from http import HTTPStatus
 
 import pytest
-from pytest_lazyfixture import lazy_fixture
 from pytest_django.asserts import assertRedirects
+from pytest_lazyfixture import lazy_fixture as lf
 
 
 pytestmark = pytest.mark.django_db
 
-CLIENT = lazy_fixture('client')
-NOT_AUTHOR_CLIENT = lazy_fixture('not_author_client')
-AUTHOR_CLIENT = lazy_fixture('author_client')
-COMMENT_EDIT = lazy_fixture('news_edit_url')
-COMMENT_DELETE = lazy_fixture('news_delete_url')
+CLIENT = lf('client')
+NOT_AUTHOR_CLIENT = lf('not_author_client')
+AUTHOR_CLIENT = lf('author_client')
+COMMENT_EDIT = lf('news_edit_url')
+COMMENT_DELETE = lf('news_delete_url')
 
 
 @pytest.mark.parametrize(
     'url, client_fixture, expected_status',
     [
-        (lazy_fixture('home_url'), CLIENT, HTTPStatus.OK),
-        (lazy_fixture('news_detail_url'), CLIENT, HTTPStatus.OK),
-        (lazy_fixture('users_login_url'), CLIENT, HTTPStatus.OK),
-        (lazy_fixture('users_logout_url'), CLIENT, 405),
-        (lazy_fixture('users_signup_url'), CLIENT, HTTPStatus.OK),
+        (lf('home_url'), CLIENT, HTTPStatus.OK),
+        (lf('news_detail_url'), CLIENT, HTTPStatus.OK),
+        (lf('users_login_url'), CLIENT, HTTPStatus.OK),
+        (lf('users_logout_url'), CLIENT, HTTPStatus.METHOD_NOT_ALLOWED),
+        (lf('users_signup_url'), CLIENT, HTTPStatus.OK),
         (COMMENT_EDIT, CLIENT, HTTPStatus.FOUND),
         (COMMENT_DELETE, CLIENT, HTTPStatus.FOUND),
         (COMMENT_EDIT, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND),
@@ -38,8 +38,8 @@ def test_pages_availability(url, client_fixture, expected_status):
 @pytest.mark.parametrize(
     'url, redirect_url',
     [
-        (COMMENT_EDIT, lazy_fixture('redirect_edit_url')),
-        (COMMENT_DELETE, lazy_fixture('redirect_delete_url')),
+        (COMMENT_EDIT, lf('redirect_edit_url')),
+        (COMMENT_DELETE, lf('redirect_delete_url')),
     ]
 )
 def test_redirect_for_anonymous_users(client, url, redirect_url):

@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
 import pytest
-from django.test.client import Client
 from django.conf import settings
+from django.test.client import Client
 from django.urls import reverse
 
 from news.models import News, Comment
@@ -14,8 +14,8 @@ def home_url():
 
 
 @pytest.fixture
-def news_detail_url(id_news_for_args):
-    return reverse('news:detail', args=id_news_for_args)
+def news_detail_url(news):
+    return reverse('news:detail', args=(news.id,))
 
 
 @pytest.fixture
@@ -34,13 +34,13 @@ def users_signup_url():
 
 
 @pytest.fixture
-def news_edit_url(id_for_args):
-    return reverse('news:edit', args=id_for_args)
+def news_edit_url(comment):
+    return reverse('news:edit', args=(comment.id,))
 
 
 @pytest.fixture
-def news_delete_url(id_for_args):
-    return reverse('news:delete', args=id_for_args)
+def news_delete_url(comment):
+    return reverse('news:delete', args=(comment.id,))
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ def create_news_test():
                      )
                 for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
                 ]
-    return News.objects.bulk_create(all_news)
+    News.objects.bulk_create(all_news)
 
 
 @pytest.fixture
@@ -96,11 +96,6 @@ def news():
         text='Текст новости',
     )
     return news
-
-
-@pytest.fixture
-def id_news_for_args(news):
-    return (news.id,)
 
 
 @pytest.fixture
@@ -114,23 +109,21 @@ def comment(author, news):
 
 
 @pytest.fixture
-def create_new_comment():
+def create_new_comment(author, news):
     today = datetime.today()
-    all_comment = [Comment(text=f'Комментарий {index}',
-                           date=today - timedelta(days=index),
-                           )
-                   for index in range(settings.NEWS_COUNT_ON_HOME_PAGE)
-                   ]
-    return Comment.objects.bulk_create(all_comment)
-
-
-@pytest.fixture
-def id_for_args(comment):
-    return (comment.id,)
-
-
-@pytest.fixture
-def create_comment_test():
-    return {
-        'text': 'Новый текст комментария',
-    }
+    comments = []
+    for index in range(settings.NEWS_COUNT_ON_HOME_PAGE):
+        # Создаем комментарий с обязательными полями
+        comment = Comment(
+            text=f'Комментарий {index}',
+            news=news,
+            author=author
+        )
+        # Сохраняем для получения id
+        comment.save()
+        # ПЕРЕЗАПИСЫВАЕМ поле created
+        comment.created = today - timedelta(days=index)
+        # Сохраняем с новой датой
+        comment.save()
+        comments.append(comment)
+    return comments
