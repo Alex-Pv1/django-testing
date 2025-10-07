@@ -30,9 +30,8 @@ class TestBase(TestCase):
             )
             for index in range(5)
         ]
-        created_notes = Note.objects.bulk_create(all_notes)
-
-        cls.note = created_notes[0]
+        Note.objects.bulk_create(all_notes)
+        cls.note = Note.objects.get(slug='note-0')
 
         cls.home_url = reverse('notes:home')
         cls.list_url = reverse('notes:list')
