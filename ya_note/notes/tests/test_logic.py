@@ -75,52 +75,36 @@ class TestCommentEditDelete(TestBase):
             'slug': 'new-slug'
         }
 
+    def test_user_cant_edit_note_of_another_user(self):
+        original_note_id = self.note.id
+        response = self.reader_client.post(self.edit_url, self.form_data)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        note_after = Note.objects.get(pk=original_note_id)
+        self.assertEqual(note_after.text, self.note.text)
+        self.assertEqual(note_after.title, self.note.title)
+        self.assertEqual(note_after.slug, self.note.slug)
+        self.assertEqual(note_after.author, self.note.author)
+
+    def test_author_can_edit_note(self):
+        original_note_id = self.note.id
+        response = self.author_client.post(self.edit_url, self.form_data)
+        self.assertRedirects(response, self.success_url)
+        note = Note.objects.get(pk=original_note_id)
+        self.assertEqual(note.text, self.form_data['text'])
+        self.assertEqual(note.title, self.form_data['title'])
+        self.assertEqual(note.slug, self.form_data['slug'])
+        self.assertEqual(note.author, self.note.author)
+
+    def test_user_cant_delete_note_of_another_user(self):
+        notes_count = Note.objects.count()
+        response = self.reader_client.delete(self.delete_url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        final_notes_count = Note.objects.count()
+        self.assertEqual(final_notes_count, notes_count)
+
     def test_author_can_delete_note(self):
         notes_count = Note.objects.count()
         response = self.author_client.delete(self.delete_url)
         self.assertRedirects(response, self.success_url)
         final_notes_count = Note.objects.count()
         self.assertEqual(final_notes_count, notes_count - 1)
-
-    def test_user_cant_delete_note_of_another_user(self):
-        response = self.reader_client.delete(self.delete_url)
-        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        notes_count = Note.objects.count()
-        self.assertEqual(notes_count, 5)
-
-    def test_author_can_edit_note(self):
-        original_note_id = self.note.id
-        print(f"🔧 DEBUG: Testing edit - Note "
-              f"ID: {original_note_id}, Slug: {self.note.slug}")
-        response = self.author_client.post(self.edit_url, self.form_data)
-        print(f"🔧 DEBUG: Edit response status: {response.status_code}")
-        self.assertRedirects(response, self.success_url)
-        # Проверяем что заметка существует
-        note_exists = Note.objects.filter(id=original_note_id).exists()
-        print(f"🔧 DEBUG: Note exists after edit: {note_exists}")
-        note = Note.objects.get(id=original_note_id)
-        print(f"🔧 DEBUG: Retrieved note - ID: {note.id}, Slug: {note.slug}")
-        self.assertEqual(note.text, self.form_data['text'])
-        self.assertEqual(note.title, self.form_data['title'])
-        self.assertEqual(note.slug, self.form_data['slug'])
-        self.assertEqual(note.author, self.note.author)
-
-    def test_user_cant_edit_note_of_another_user(self):
-        original_note_id = self.note.id
-        print(f"🔧 DEBUG: Testing unauthorized edit - "
-              f"Note ID: {original_note_id}")
-        response = self.reader_client.post(self.edit_url, self.form_data)
-        print(f"🔧 DEBUG: Unauthorized edit response "
-              f"status: {response.status_code}")
-        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        # Проверяем существование заметки
-        note_exists = Note.objects.filter(id=original_note_id).exists()
-        print(f"🔧 DEBUG: Note exists after "
-              f"unauthorized edit: {note_exists}")
-        note_after = Note.objects.get(id=original_note_id)
-        print(f"🔧 DEBUG: Retrieved note after "
-              f"unauthorized edit - ID: {note_after.id}")
-        self.assertEqual(note_after.text, self.note.text)
-        self.assertEqual(note_after.title, self.note.title)
-        self.assertEqual(note_after.slug, self.note.slug)
-        self.assertEqual(note_after.author, self.note.author)
