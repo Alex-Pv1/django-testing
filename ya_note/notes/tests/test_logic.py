@@ -76,20 +76,18 @@ class TestCommentEditDelete(TestBase):
         }
 
     def test_user_cant_edit_note_of_another_user(self):
-        original_note_id = self.note.id
         response = self.reader_client.post(self.edit_url, self.form_data)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        note_after = Note.objects.get(pk=original_note_id)
+        note_after = Note.objects.get(pk=self.note.id)
         self.assertEqual(note_after.text, self.note.text)
         self.assertEqual(note_after.title, self.note.title)
         self.assertEqual(note_after.slug, self.note.slug)
         self.assertEqual(note_after.author, self.note.author)
 
     def test_author_can_edit_note(self):
-        original_note_id = self.note.id
         response = self.author_client.post(self.edit_url, self.form_data)
         self.assertRedirects(response, self.success_url)
-        note = Note.objects.get(pk=original_note_id)
+        note = Note.objects.get(pk=self.note.id)
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.slug, self.form_data['slug'])
