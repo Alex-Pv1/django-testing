@@ -3,6 +3,7 @@ from http import HTTPStatus
 from django.contrib.auth import get_user
 from pytils.translit import slugify
 
+from notes.forms import WARNING
 from notes.models import Note
 from .base import TestBase
 
@@ -20,7 +21,7 @@ class TestNoteCreation(TestBase):
 
     def test_anonymous_user_cant_create_note(self):
         notes_count = Note.objects.count()
-        self.anonymous_client.post(self.add_url, data=self.form_data)
+        self.client.post(self.add_url, data=self.form_data)
         final_notes_count = Note.objects.count()
         self.assertEqual(final_notes_count, notes_count)
 
@@ -48,13 +49,9 @@ class TestNoteCreation(TestBase):
             data=duplicate_form_data
         )
         notes_count_2 = Note.objects.count()
+        expected_error = f"{existing_note.slug}{WARNING}"
         self.assertEqual(notes_count_2, notes_count)
-        self.assertFormError(
-            response.context['form'],
-            'slug',
-            'note-0 - такой slug уже существует, '
-            'придумайте уникальное значение!'
-        )
+        self.assertFormError(response.context['form'], 'slug', expected_error)
 
     def test_automatic_creation_slug(self):
         Note.objects.all().delete()

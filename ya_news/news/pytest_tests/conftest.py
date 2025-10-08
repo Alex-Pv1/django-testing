@@ -5,7 +5,7 @@ from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
 
-from news.models import News, Comment
+from news.models import Comment, News
 
 
 @pytest.fixture
@@ -111,7 +111,6 @@ def comment(author, news):
 @pytest.fixture
 def create_new_comment(author, news):
     today = datetime.today()
-    comments = []
     for index in range(settings.NEWS_COUNT_ON_HOME_PAGE):
         # Создаем комментарий с обязательными полями
         comment = Comment(
@@ -125,5 +124,3 @@ def create_new_comment(author, news):
         comment.created = today - timedelta(days=index)
         # Сохраняем с новой датой
         comment.save()
-        comments.append(comment)
-    return comments

@@ -13,7 +13,6 @@ class TestBase(TestCase):
     def setUpTestData(cls):
         cls.author = User.objects.create(username='Лев Толстой')
         cls.reader = User.objects.create(username='Читатель')
-        cls.anonymous_client = Client()
         cls.author_client = Client()
         cls.author_client.force_login(cls.author)
         cls.reader_client = Client()

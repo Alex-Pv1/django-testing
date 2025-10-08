@@ -3,7 +3,6 @@ from http import HTTPStatus
 import pytest
 from pytest_django.asserts import assertRedirects
 
-
 from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
 
@@ -57,14 +56,14 @@ def test_author_can_edit_comment(author_client,
                                  author,
                                  comment):
     """Авторизованный пользователь может редактироватьсвои комментарии."""
-    coment_count = Comment.objects.count()
+    comment_count = Comment.objects.count()
     response = author_client.post(news_edit_url, data=COMMENT_DATA)
     assertRedirects(response, f'{news_detail_url}#comments')
-    assert coment_count == Comment.objects.count()
+    assert comment_count == Comment.objects.count()
     edited_comment = Comment.objects.get(id=comment.id)
     assert edited_comment.text == COMMENT_DATA['text']
-    assert edited_comment.author == author
-    assert edited_comment.news == news
+    assert edited_comment.author == comment.author
+    assert edited_comment.news == comment.news
 
 
 def test_user_cant_edit_comment_of_another_user(not_author_client,
